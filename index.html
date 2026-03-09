@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gaja Slokar — Desmon Rakols</title>
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --void: #0A0806;
+  --bone: #E8DFD0;
+  --parchment: #C9BDA8;
+  --ash: #6B6560;
+  --ghost: #1C1814;
+  --moss: #3D4A2E;
+  --blood: #8B1A1A;
+  --moonlight: #D4CCB8;
+  --fog: rgba(200,190,170,0.07);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--void);
+  color: var(--bone);
+  font-family: 'Crimson Pro', serif;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* ── CURSOR ── */
+.cursor-dot {
+  width: 8px; height: 8px;
+  background: var(--bone);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: transform 0.1s ease, background 0.3s;
+  mix-blend-mode: difference;
+}
+.cursor-eye {
+  width: 44px; height: 44px;
+  position: fixed;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+}
+.cursor-eye svg { width: 100%; height: 100%; }
+.cursor-eye ellipse {
+  stroke: var(--parchment);
+  fill: none;
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+  animation: spin 8s linear infinite;
+  transform-origin: center;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── NOISE OVERLAY ── */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 999;
+  opacity: 0.5;
+}
+
+/* ── FLOATING PARTICLES ── */
+.particles { position: fixed; inset: 0; pointer-events: none; z-index: 1; overflow: hidden; }
+.particle {
+  position: absolute;
+  width: 2px; height: 2px;
+  background: var(--parchment);
+  border-radius: 50%;
+  opacity: 0;
+  animation: float-up linear infinite;
+}
+@keyframes float-up {
+  0% { opacity: 0; transform: translateY(0) translateX(0) scale(0); }
+  10% { opacity: 0.4; transform: scale(1); }
+  90% { opacity: 0.15; }
+  100% { opacity: 0; transform: translateY(-100vh) translateX(30px) scale(0.5); }
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 500;
+  padding: 28px 60px;
+  display: flex; justify-content: space-between; align-items: center;
+  background: linear-gradient(to bottom, rgba(10,8,6,0.9) 0%, transparent 100%);
+}
+.nav-brand { text-decoration: none; }
+.nav-name {
+  font-family: 'Crimson Pro', serif;
+  font-size: 1.05rem;
+  font-weight: 300;
+  letter-spacing: 0.12em;
+  color: var(--bone);
+}
+.nav-artist {
+  font-family: 'UnifrakturMaguntia', cursive;
+  font-size: 0.75rem;
+  color: var(--ash);
+  display: block;
+  letter-spacing: 0.05em;
+  margin-top: -2px;
+  transition: color 0.3s;
+}
+.nav-brand:hover .nav-artist { color: var(--parchment); }
+.nav-links { display: flex; gap: 44px; list-style: none; }
+.nav-links a {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ash);
+  text-decoration: none;
+  transition: color 0.3s;
+  position: relative;
+}
+.nav-links a::before {
+  content: '✦';
+  position: absolute; left: -14px; top: 50%; transform: translateY(-50%);
+  font-size: 0.4rem;
+  opacity: 0;
+  color: var(--parchment);
+  transition: opacity 0.3s;
+}
+.nav-links a:hover { color: var(--bone); }
+.nav-links a:hover::before { opacity: 1; }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 120px 60px 80px;
+}
+
+/* Wobbly circular frame */
+.hero-moon {
+  position: absolute;
+  width: 600px; height: 600px;
+  border-radius: 46% 54% 52% 48% / 44% 48% 52% 56%;
+  border: 1px solid rgba(200,190,170,0.12);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  animation: morph 10s ease-in-out infinite;
+  pointer-events: none;
+}
+.hero-moon-2 {
+  width: 750px; height: 750px;
+  border-radius: 52% 48% 44% 56% / 48% 52% 48% 52%;
+  border: 1px solid rgba(200,190,170,0.06);
+  animation: morph 14s ease-in-out infinite reverse;
+}
+@keyframes morph {
+  0%, 100% { border-radius: 46% 54% 52% 48% / 44% 48% 52% 56%; }
+  25%  { border-radius: 54% 46% 48% 52% / 52% 44% 56% 48%; }
+  50%  { border-radius: 48% 52% 56% 44% / 46% 54% 44% 56%; }
+  75%  { border-radius: 52% 48% 44% 56% / 54% 46% 52% 48%; }
+}
+
+/* Twisted trees decoration */
+.hero-trees {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 220px; pointer-events: none;
+  display: flex; justify-content: space-between;
+  align-items: flex-end;
+  padding: 0 20px;
+  opacity: 0.25;
+}
+.tree { font-size: clamp(60px, 8vw, 120px); line-height: 1; }
+
+.hero-content { position: relative; z-index: 2; text-align: center; }
+
+.hero-eyebrow {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.62rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ash);
+  margin-bottom: 32px;
+  display: flex; align-items: center; justify-content: center; gap: 16px;
+}
+.hero-eyebrow::before, .hero-eyebrow::after {
+  content: ''; display: block; width: 40px; height: 1px;
+  background: linear-gradient(to right, transparent, var(--ash));
+}
+.hero-eyebrow::after { transform: scaleX(-1); }
+
+.hero-title {
+  font-family: 'UnifrakturMaguntia', cursive;
+  font-size: clamp(64px, 11vw, 150px);
+  line-height: 0.9;
+  color: var(--bone);
+  margin-bottom: 8px;
+  text-shadow: 0 0 80px rgba(200,190,170,0.15);
+  animation: titleEntrance 1.4s cubic-bezier(0.16,1,0.3,1) forwards;
+  opacity: 0; transform: translateY(40px) skewY(2deg);
+}
+.hero-subtitle {
+  font-family: 'Crimson Pro', serif;
+  font-size: clamp(13px, 1.8vw, 20px);
+  font-weight: 300;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--ash);
+  margin-bottom: 48px;
+  animation: titleEntrance 1.4s cubic-bezier(0.16,1,0.3,1) 0.15s forwards;
+  opacity: 0; transform: translateY(20px);
+}
+.hero-tagline {
+  font-family: 'Crimson Pro', serif;
+  font-style: italic;
+  font-size: clamp(16px, 2vw, 22px);
+  font-weight: 300;
+  color: var(--parchment);
+  max-width: 480px;
+  margin: 0 auto 56px;
+  line-height: 1.6;
+  animation: titleEntrance 1.4s cubic-bezier(0.16,1,0.3,1) 0.3s forwards;
+  opacity: 0; transform: translateY(20px);
+}
+@keyframes titleEntrance {
+  to { opacity: 1; transform: translateY(0) skewY(0); }
+}
+
+.hero-scroll {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  color: var(--ash);
+  font-family: 'Special Elite', cursive;
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: color 0.3s;
+  animation: titleEntrance 1s ease 0.5s forwards;
+  opacity: 0;
+}
+.hero-scroll:hover { color: var(--bone); }
+.scroll-line {
+  width: 1px; height: 50px;
+  background: linear-gradient(to bottom, var(--ash), transparent);
+  animation: scrollPulse 2s ease-in-out infinite;
+}
+@keyframes scrollPulse {
+  0%, 100% { opacity: 0.4; transform: scaleY(1); }
+  50% { opacity: 1; transform: scaleY(1.2); }
+}
+
+/* ── FEATURED WORKS ── */
+.section { padding: 100px 60px; position: relative; }
+
+.section-heading {
+  display: flex; align-items: center; gap: 24px;
+  margin-bottom: 64px;
+}
+.section-glyph {
+  font-family: 'UnifrakturMaguntia', cursive;
+  font-size: 2.4rem;
+  color: var(--ash);
+  line-height: 1;
+}
+.section-label {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.6rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--ash);
+  display: block; margin-bottom: 4px;
+}
+.section-title {
+  font-family: 'Crimson Pro', serif;
+  font-size: clamp(28px, 3.5vw, 48px);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+}
+.section-title em { font-style: italic; color: var(--parchment); }
+
+/* Featured grid */
+.featured-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  grid-template-rows: 420px 300px;
+  gap: 3px;
+}
+.work-card {
+  position: relative; overflow: hidden;
+  cursor: none;
+  background: var(--ghost);
+}
+.work-card:first-child { grid-row: 1 / 3; }
+
+.work-card-bg {
+  position: absolute; inset: 0;
+  transition: transform 0.8s cubic-bezier(0.16,1,0.3,1), filter 0.6s ease;
+  filter: saturate(0.4) brightness(0.6);
+}
+.work-card:hover .work-card-bg {
+  transform: scale(1.06);
+  filter: saturate(0.7) brightness(0.75);
+}
+
+/* Placeholder art for each card */
+.bg-xr {
+  background: radial-gradient(ellipse at 30% 40%, #1a2a3a 0%, #0d0d0d 60%),
+    repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(100,150,200,0.03) 20px, rgba(100,150,200,0.03) 21px);
+}
+.bg-xr::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 35% 45%, rgba(80,120,180,0.3) 0%, transparent 55%),
+              radial-gradient(circle at 70% 60%, rgba(140,80,180,0.2) 0%, transparent 40%);
+}
+.bg-game {
+  background: radial-gradient(ellipse at 60% 40%, #1a0d0d 0%, #080508 60%);
+}
+.bg-game::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 60% 35%, rgba(180,40,40,0.25) 0%, transparent 50%),
+              radial-gradient(circle at 20% 70%, rgba(60,20,80,0.3) 0%, transparent 40%);
+}
+.bg-illus {
+  background: radial-gradient(ellipse at 50% 30%, #12180a 0%, #080806 60%);
+}
+.bg-illus::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 30%, rgba(80,120,40,0.2) 0%, transparent 50%),
+              radial-gradient(circle at 80% 80%, rgba(160,140,60,0.15) 0%, transparent 40%);
+}
+
+/* SVG decorative elements inside cards */
+.card-deco {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0.12;
+  transition: opacity 0.5s;
+  pointer-events: none;
+}
+.work-card:hover .card-deco { opacity: 0.2; }
+.card-deco svg { width: 60%; height: 60%; }
+
+.work-card-vignette {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(10,8,6,0.95) 0%, rgba(10,8,6,0.3) 50%, transparent 100%);
+}
+.work-card-info {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 36px 32px;
+  transform: translateY(8px);
+  transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+}
+.work-card:hover .work-card-info { transform: translateY(0); }
+.work-cat {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--parchment);
+  opacity: 0.7;
+  margin-bottom: 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+.work-cat::before { content: '⬡'; font-size: 0.5rem; }
+.work-title {
+  font-family: 'Crimson Pro', serif;
+  font-size: clamp(20px, 2.5vw, 34px);
+  font-weight: 300;
+  line-height: 1.2;
+  color: var(--bone);
+  margin-bottom: 10px;
+}
+.work-desc {
+  font-size: 0.85rem;
+  font-weight: 300;
+  color: var(--parchment);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.4s 0.1s, transform 0.4s 0.1s;
+  line-height: 1.6;
+}
+.work-card:hover .work-desc { opacity: 0.75; transform: translateY(0); }
+
+/* ── CATEGORIES / ARCHIVE ── */
+.archive-section { background: var(--ghost); }
+.archive-section .section { padding: 100px 60px; }
+
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+}
+.cat-card {
+  position: relative;
+  padding: 48px 36px;
+  background: var(--void);
+  cursor: none;
+  overflow: hidden;
+  transition: background 0.4s;
+  border: 1px solid rgba(200,190,170,0.05);
+}
+.cat-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(200,190,170,0.06) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.cat-card:hover::before { opacity: 1; }
+.cat-card:hover { border-color: rgba(200,190,170,0.12); }
+
+.cat-icon {
+  font-size: 2.8rem;
+  margin-bottom: 24px;
+  display: block;
+  line-height: 1;
+  filter: grayscale(0.5);
+  transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), filter 0.3s;
+}
+.cat-card:hover .cat-icon { transform: rotate(-8deg) scale(1.15); filter: grayscale(0); }
+
+.cat-name {
+  font-family: 'Crimson Pro', serif;
+  font-size: 1.4rem;
+  font-weight: 300;
+  color: var(--bone);
+  margin-bottom: 8px;
+}
+.cat-count {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ash);
+  margin-bottom: 20px;
+}
+.cat-desc {
+  font-size: 0.85rem;
+  font-weight: 300;
+  color: var(--ash);
+  line-height: 1.7;
+}
+.cat-arrow {
+  position: absolute; bottom: 32px; right: 32px;
+  color: var(--parchment);
+  opacity: 0;
+  transform: translate(-6px, 6px);
+  transition: opacity 0.3s, transform 0.3s;
+  font-size: 1.1rem;
+}
+.cat-card:hover .cat-arrow { opacity: 0.5; transform: translate(0,0); }
+
+/* ── ABOUT STRIP ── */
+.about-strip {
+  padding: 100px 60px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+  border-top: 1px solid rgba(200,190,170,0.07);
+}
+.about-visual {
+  position: relative;
+  height: 480px;
+}
+.about-frame {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(200,190,170,0.1);
+  border-radius: 48% 52% 44% 56% / 52% 44% 56% 48%;
+  animation: morph 12s ease-in-out infinite;
+  overflow: hidden;
+  background: var(--ghost);
+  display: flex; align-items: center; justify-content: center;
+}
+.about-frame-inner {
+  font-family: 'UnifrakturMaguntia', cursive;
+  font-size: 7rem;
+  color: rgba(200,190,170,0.12);
+  letter-spacing: -0.05em;
+}
+.about-frame::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 40% 35%, rgba(80,100,60,0.2) 0%, transparent 60%),
+              radial-gradient(circle at 70% 70%, rgba(60,40,80,0.2) 0%, transparent 50%);
+}
+.about-corner {
+  position: absolute;
+  font-size: 1.5rem;
+  opacity: 0.3;
+  color: var(--parchment);
+}
+.about-corner.tl { top: -16px; left: -16px; }
+.about-corner.br { bottom: -16px; right: -16px; transform: rotate(180deg); }
+
+.about-text-block .section-label { margin-bottom: 8px; }
+.about-text-block .section-title { margin-bottom: 32px; }
+.about-body {
+  font-size: 1rem;
+  font-weight: 300;
+  line-height: 1.85;
+  color: var(--parchment);
+  opacity: 0.85;
+}
+.about-body + .about-body { margin-top: 16px; }
+.about-tags {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-top: 36px;
+}
+.about-tag {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ash);
+  border: 1px solid rgba(200,190,170,0.12);
+  padding: 6px 14px;
+  transition: color 0.25s, border-color 0.25s;
+}
+.about-tag:hover { color: var(--bone); border-color: rgba(200,190,170,0.3); }
+
+/* ── CONTACT ── */
+.contact-section {
+  text-align: center;
+  padding: 100px 60px 80px;
+  position: relative;
+  overflow: hidden;
+  border-top: 1px solid rgba(200,190,170,0.07);
+}
+.contact-section::before {
+  content: '';
+  position: absolute; top: -200px; left: 50%; transform: translateX(-50%);
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(60,40,30,0.4) 0%, transparent 70%);
+  pointer-events: none;
+}
+.contact-overline {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.62rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--ash);
+  margin-bottom: 28px;
+}
+.contact-big {
+  font-family: 'UnifrakturMaguntia', cursive;
+  font-size: clamp(40px, 8vw, 100px);
+  line-height: 1;
+  color: var(--bone);
+  margin-bottom: 16px;
+  text-shadow: 0 0 60px rgba(200,190,170,0.1);
+}
+.contact-sub {
+  font-family: 'Crimson Pro', serif;
+  font-style: italic;
+  font-size: 1.1rem;
+  color: var(--ash);
+  margin-bottom: 52px;
+}
+.contact-btn {
+  display: inline-flex; align-items: center; gap: 14px;
+  border: 1px solid rgba(200,190,170,0.25);
+  padding: 16px 40px;
+  font-family: 'Special Elite', cursive;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--bone);
+  text-decoration: none;
+  transition: background 0.3s, border-color 0.3s, gap 0.3s;
+  position: relative; overflow: hidden;
+}
+.contact-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--bone);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+  z-index: -1;
+}
+.contact-btn:hover::before { transform: scaleX(1); }
+.contact-btn:hover { color: var(--void); gap: 22px; border-color: var(--bone); }
+
+.socials {
+  display: flex; justify-content: center; gap: 36px;
+  margin-top: 56px;
+}
+.social {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ash);
+  text-decoration: none;
+  transition: color 0.25s;
+}
+.social:hover { color: var(--parchment); }
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid rgba(200,190,170,0.07);
+  padding: 28px 60px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.footer-l { display: flex; flex-direction: column; gap: 2px; }
+.footer-name {
+  font-family: 'Crimson Pro', serif;
+  font-size: 0.8rem;
+  font-weight: 300;
+  letter-spacing: 0.1em;
+  color: var(--ash);
+}
+.footer-artist {
+  font-family: 'UnifrakturMaguntia', cursive;
+  font-size: 0.7rem;
+  color: rgba(107,101,96,0.5);
+}
+.footer-r {
+  font-family: 'Special Elite', cursive;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  color: rgba(107,101,96,0.5);
+  text-transform: uppercase;
+}
+
+/* ── SCROLL REVEAL ── */
+.reveal {
+  opacity: 0; transform: translateY(36px);
+  transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.9s cubic-bezier(0.16,1,0.3,1);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+
+/* ── DIVIDER ── */
+.ornament {
+  text-align: center;
+  color: var(--ash);
+  font-size: 1.1rem;
+  letter-spacing: 1rem;
+  opacity: 0.35;
+  padding: 40px 0 20px;
+}
+
+/* ── MOBILE ── */
+@media (max-width: 900px) {
+  nav { padding: 20px 28px; }
+  .nav-links { gap: 20px; }
+  .section { padding: 70px 28px; }
+  .featured-grid { grid-template-columns: 1fr; grid-template-rows: auto; }
+  .work-card:first-child { grid-row: auto; height: 380px; }
+  .work-card:not(:first-child) { height: 260px; }
+  .categories-grid { grid-template-columns: 1fr 1fr; }
+  .about-strip { grid-template-columns: 1fr; gap: 48px; }
+  .about-visual { height: 300px; }
+  .contact-section { padding: 70px 28px; }
+  footer { padding: 24px 28px; }
+}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div class="cursor-dot" id="cursorDot"></div>
+<div class="cursor-eye" id="cursorEye">
+  <svg viewBox="0 0 44 44">
+    <ellipse cx="22" cy="22" rx="18" ry="12" id="eyeEllipse"/>
+    <circle cx="22" cy="22" r="5" fill="rgba(200,190,170,0.4)"/>
+    <circle cx="22" cy="22" r="2" fill="rgba(200,190,170,0.8)"/>
+  </svg>
+</div>
+
+<!-- PARTICLES -->
+<div class="particles" id="particles"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-brand">
+    <span class="nav-name">Gaja Slokar</span>
+    <span class="nav-artist">Desmon Rakols</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#work">Work</a></li>
+    <li><a href="#archive">Archive</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-moon"></div>
+  <div class="hero-moon hero-moon-2"></div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">Multimedia Artist · XR · 3D · Interactive</div>
+    <h1 class="hero-title">Gaja Slokar</h1>
+    <p class="hero-subtitle">Desmon Rakols</p>
+    <p class="hero-tagline">Glimpses into a parallel layer of reality — where the imaginary breathes and the unseen takes form.</p>
+    <a href="#work" class="hero-scroll">
+      Enter
+      <span class="scroll-line"></span>
+    </a>
+  </div>
+
+  <div class="hero-trees">
+    <span class="tree">🌲</span>
+    <span class="tree" style="font-size:0.6em;margin-bottom:10px">🌲</span>
+    <span class="tree" style="font-size:1.3em">🌲</span>
+    <span class="tree" style="font-size:0.7em;margin-bottom:5px">🌲</span>
+    <span class="tree">🌲</span>
+    <span class="tree" style="font-size:1.4em">🌲</span>
+    <span class="tree" style="font-size:0.8em;margin-bottom:8px">🌲</span>
+    <span class="tree">🌲</span>
+    <span class="tree" style="font-size:1.1em">🌲</span>
+    <span class="tree" style="font-size:0.65em;margin-bottom:12px">🌲</span>
+    <span class="tree" style="font-size:1.3em">🌲</span>
+  </div>
+</section>
+
+<!-- FEATURED WORK -->
+<section class="section" id="work">
+  <div class="section-heading reveal">
+    <span class="section-glyph">✦</span>
+    <div>
+      <span class="section-label">Featured</span>
+      <h2 class="section-title">Selected <em>Works</em></h2>
+    </div>
+  </div>
+
+  <div class="featured-grid reveal">
+    <!-- Card 1: XR (large) -->
+    <div class="work-card">
+      <div class="work-card-bg bg-xr"></div>
+      <div class="card-deco">
+        <svg viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="0.5">
+          <circle cx="100" cy="100" r="80"/>
+          <circle cx="100" cy="100" r="55"/>
+          <circle cx="100" cy="100" r="30"/>
+          <line x1="20" y1="100" x2="180" y2="100"/>
+          <line x1="100" y1="20" x2="100" y2="180"/>
+          <ellipse cx="100" cy="100" rx="80" ry="30"/>
+          <ellipse cx="100" cy="100" rx="55" ry="20"/>
+        </svg>
+      </div>
+      <div class="work-card-vignette"></div>
+      <div class="work-card-info">
+        <div class="work-cat">XR Experience</div>
+        <div class="work-title">Between Worlds —<br>An Immersive XR Journey</div>
+        <div class="work-desc">A spatial reality experience exploring the threshold between what we perceive and what lies beyond — built in WebXR with custom 3D environments.</div>
+      </div>
+    </div>
+
+    <!-- Card 2: Game -->
+    <div class="work-card">
+      <div class="work-card-bg bg-game"></div>
+      <div class="card-deco">
+        <svg viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="0.5">
+          <rect x="30" y="60" width="140" height="90" rx="8"/>
+          <circle cx="80" cy="105" r="20"/>
+          <line x1="140" y1="88" x2="160" y2="88"/>
+          <line x1="150" y1="78" x2="150" y2="98"/>
+        </svg>
+      </div>
+      <div class="work-card-vignette"></div>
+      <div class="work-card-info">
+        <div class="work-cat">Video Game</div>
+        <div class="work-title">The Crooked Garden</div>
+        <div class="work-desc">A narrative puzzle game set in a surreal topiary maze where nothing grows straight.</div>
+      </div>
+    </div>
+
+    <!-- Card 3: Illustration -->
+    <div class="work-card">
+      <div class="work-card-bg bg-illus"></div>
+      <div class="card-deco">
+        <svg viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="0.5">
+          <path d="M100 20 C60 20 20 60 20 100 C20 140 60 180 100 180 C140 180 180 140 180 100"/>
+          <path d="M100 50 C75 50 50 75 50 100 C50 125 75 150 100 150"/>
+          <path d="M100 40 L115 80 L160 80 L125 105 L138 150 L100 125 L62 150 L75 105 L40 80 L85 80 Z"/>
+        </svg>
+      </div>
+      <div class="work-card-vignette"></div>
+      <div class="work-card-info">
+        <div class="work-cat">Illustration Series</div>
+        <div class="work-title">Hollow Creatures</div>
+        <div class="work-desc">An ongoing series of ink and digital illustrations of imagined beings from the in-between.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="ornament">✦ ✦ ✦</div>
+
+<!-- ARCHIVE / CATEGORIES -->
+<div class="archive-section" id="archive">
+  <section class="section">
+    <div class="section-heading reveal">
+      <span class="section-glyph">⬡</span>
+      <div>
+        <span class="section-label">Browse by discipline</span>
+        <h2 class="section-title">The <em>Archive</em></h2>
+      </div>
+    </div>
+
+    <div class="categories-grid">
+      <div class="cat-card reveal reveal-delay-1">
+        <span class="cat-icon">🥽</span>
+        <div class="cat-name">XR Experiences</div>
+        <div class="cat-count">— 6 works</div>
+        <div class="cat-desc">Augmented and virtual realities that tear a hole in the fabric of the everyday.</div>
+        <span class="cat-arrow">↗</span>
+      </div>
+      <div class="cat-card reveal reveal-delay-2">
+        <span class="cat-icon">🎮</span>
+        <div class="cat-name">Video Games</div>
+        <div class="cat-count">— 4 works</div>
+        <div class="cat-desc">Interactive worlds where strange rules apply and ordinary logic need not apply.</div>
+        <span class="cat-arrow">↗</span>
+      </div>
+      <div class="cat-card reveal reveal-delay-3">
+        <span class="cat-icon">🖋️</span>
+        <div class="cat-name">Illustrations</div>
+        <div class="cat-count">— 18 works</div>
+        <div class="cat-desc">Ink, pixel, and imagination — creatures, places and moods from elsewhere.</div>
+        <span class="cat-arrow">↗</span>
+      </div>
+      <div class="cat-card reveal">
+        <span class="cat-icon">🌐</span>
+        <div class="cat-name">3D & Interactive</div>
+        <div class="cat-count">— 9 works</div>
+        <div class="cat-desc">Three-dimensional objects, environments, and interactive media experiments.</div>
+        <span class="cat-arrow">↗</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="ornament">✦ ✦ ✦</div>
+
+<!-- ABOUT -->
+<section class="about-strip" id="about">
+  <div class="about-visual reveal">
+    <div class="about-frame">
+      <div class="about-frame-inner">GS</div>
+    </div>
+    <span class="about-corner tl">✦</span>
+    <span class="about-corner br">✦</span>
+  </div>
+  <div class="about-text-block reveal reveal-delay-1">
+    <span class="section-label">About</span>
+    <h2 class="section-title">Making the <em>unseen</em><br>visible</h2>
+    <p class="about-body">I'm Gaja Slokar — a multimedia artist currently studying at a fine art academy, working at the strange border where physical reality ends and the digital imagination begins.</p>
+    <p class="about-body">My practice spans XR experiences, video games, illustration, and interactive 3D media. I'm drawn to the twisted, the liminal, and the slightly-off — work that feels like it arrived from somewhere adjacent to here.</p>
+    <div class="about-tags">
+      <span class="about-tag">Fine Art Academy</span>
+      <span class="about-tag">XR / WebXR</span>
+      <span class="about-tag">Unity · Blender</span>
+      <span class="about-tag">Interactive Media</span>
+      <span class="about-tag">3D</span>
+      <span class="about-tag">Game Design</span>
+      <span class="about-tag">Illustration</span>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact-section" id="contact">
+  <div class="reveal">
+    <p class="contact-overline">Open for collaborations & commissions</p>
+    <h2 class="contact-big">Let's make<br>something strange</h2>
+    <p class="contact-sub">— from one layer of reality to another —</p>
+    <a href="mailto:your@email.com" class="contact-btn">Send a message ↗</a>
+    <div class="socials">
+      <a href="#" class="social">Instagram</a>
+      <a href="#" class="social">Behance</a>
+      <a href="#" class="social">Itch.io</a>
+      <a href="#" class="social">LinkedIn</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-l">
+    <span class="footer-name">Gaja Slokar</span>
+    <span class="footer-artist">Desmon Rakols</span>
+  </div>
+  <span class="footer-r">© 2025 · All rights reserved</span>
+</footer>
+
+<script>
+// ── CUSTOM CURSOR ──
+const dot = document.getElementById('cursorDot');
+const eye = document.getElementById('cursorEye');
+let mx = 0, my = 0, ex = 0, ey = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  dot.style.left = mx + 'px';
+  dot.style.top = my + 'px';
+});
+
+(function animateEye() {
+  ex += (mx - ex) * 0.1;
+  ey += (my - ey) * 0.1;
+  eye.style.left = ex + 'px';
+  eye.style.top = ey + 'px';
+  requestAnimationFrame(animateEye);
+})();
+
+document.querySelectorAll('a, .work-card, .cat-card').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    dot.style.transform = 'translate(-50%,-50%) scale(3)';
+    eye.style.width = '64px'; eye.style.height = '64px';
+  });
+  el.addEventListener('mouseleave', () => {
+    dot.style.transform = 'translate(-50%,-50%) scale(1)';
+    eye.style.width = '44px'; eye.style.height = '44px';
+  });
+});
+
+// ── PARTICLES ──
+const container = document.getElementById('particles');
+for (let i = 0; i < 35; i++) {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  p.style.cssText = `
+    left: ${Math.random() * 100}%;
+    width: ${Math.random() * 2 + 1}px;
+    height: ${Math.random() * 2 + 1}px;
+    animation-duration: ${Math.random() * 20 + 15}s;
+    animation-delay: ${Math.random() * 20}s;
+    opacity: 0;
+  `;
+  container.appendChild(p);
+}
+
+// ── SCROLL REVEAL ──
+const reveals = document.querySelectorAll('.reveal');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.c
