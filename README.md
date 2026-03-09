@@ -1,7 +1,7 @@
 # Gaia Slokar — Portfolio
 
 Artist portfolio.  
-Live at: **https://GaiaSlokar_Portfolio.github.io**
+Live at: **https://gaiaslokar_portfolio.github.io**
 
 
 ## License
